@@ -32,7 +32,7 @@ public class SimpleSlickGame extends BasicGame
 		{
 			AppGameContainer appgc;
 			appgc = new AppGameContainer(new SimpleSlickGame("Simple Slick Game"));
-			appgc.setDisplayMode(640, 480, false);
+			appgc.setDisplayMode(640, 480, false); //resolution, true = fullscreen,
 			appgc.start();
 		}
 		catch (SlickException ex)
