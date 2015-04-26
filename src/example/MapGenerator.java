@@ -3,16 +3,18 @@ package example;
 import java.util.Random;
 
 public class MapGenerator {
-	private int sx = Window.WIDTH;
-	private int sy = Window.HEIGHT;
+	public int squareSize = 20;
+	private int sx = Window.WIDTH / squareSize;
+	private int sy = Window.HEIGHT / squareSize;
 	private int randomFillPercent = 45;
 	
 	public String seed = "2Ras-3aWX-XYOQ-19XP";
 	public boolean useRandomSeed = false;
 	
-	int[][] map; 
+	public int[][] map; 
 	
-	void MapGeneration(){
+	
+	public void MapGeneration() {
 		map = new int[sx][sy];
 		RandomFillMap();
 		for(int i = 0; i < 5; i++){ // Sorts the map multiple times, to remove as much noise as possible.
@@ -20,7 +22,7 @@ public class MapGenerator {
 		}
 	}
 	
-	void RandomFillMap(){
+	private void RandomFillMap(){
 		// Will take string inputs to generate a map out of it.
 		
 		if(useRandomSeed){
@@ -45,7 +47,7 @@ public class MapGenerator {
 		}
 	}
 	
-	void FixMap(){
+	private void FixMap(){
 		// Sorts the map, and creates a fully usable map to play in.
 		for(int x = 1; x < sx-1; x++ ){
 			for(int y = 1; y < sy-1; y++){
@@ -55,7 +57,7 @@ public class MapGenerator {
 						 sum += map[x + kx][y + ky];
 					}
 				}
-				if(sum > 5) {
+				if(sum > 4) {
 					map[x][y] = 1;
 				}
 				else {
