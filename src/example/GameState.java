@@ -2,8 +2,6 @@ package example;
 
 import java.util.Random;
 
-import javafx.scene.shape.Shape;
-
 import org.lwjgl.input.Mouse;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -32,17 +30,17 @@ public class GameState extends BasicGameState {
 	public int count = 0;
 	
 	private Image MC = null;
-	//private Image EImg = null;
+	private Image EImg = null;
 
 	
 	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {
 		MapGen.MapGeneration();
-		MC = new Image("data/MC.png");
-		//EImg = new Image("data/EImg.png");
+		MC = PStat.getPlayerImg();
+		EImg = EAI.getEnemyImg();
 		if(MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 0){
 			MapGen.MapGeneration();
 		}
-		while (count < 20){
+		while (count < 20){ // makes sure everything gets calculated (debug)
 			count++;
 		}
 		if(count >= 20){
@@ -94,7 +92,7 @@ public class GameState extends BasicGameState {
 		
 	}
 	
-	public void render(GameContainer arg0, StateBasedGame arg1, Graphics g) throws SlickException {
+	public void render(GameContainer cg, StateBasedGame sg, Graphics g) throws SlickException {
 		// Creates the map, with white and black tiles
 		// TO DO: CHANGE  COLORS TO IMAGES!
 		for(int x = 0; x < Window.WIDTH / size; x++) {
@@ -130,7 +128,7 @@ public class GameState extends BasicGameState {
 						if(mapInt == EAI.enemyArr[i]){
 							g.setColor(Color.red);
 							g.fillRect(x * size - 10, y * size - 15, EAI.healthPoint / 3 , 2);
-							MC.draw(x * size - 10, y * size - 10);
+							EImg.draw(x * size - 10, y * size - 10);
 							break;
 						}
 					}
