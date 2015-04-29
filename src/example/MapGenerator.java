@@ -6,8 +6,9 @@ public class MapGenerator {
 	public int squareSize = 20;
 	public int sx = Window.WIDTH / squareSize;
 	public int sy = Window.HEIGHT / squareSize;
+	public int whiteSpace;
 	private int randomFillPercent = 40;
-	private int[] kernel = new int[]{0,1,0,1,0,1,0,1,0};
+	private int[][] kernel = new int[][]{{0,1,0},{1,1,1},{0,1,0}};
 	
 	public String seed = "2Ras-3aWX-XYOQ-19XP";
 	public boolean useRandomSeed = true;
@@ -18,10 +19,17 @@ public class MapGenerator {
 	public void MapGeneration() {
 		map = new int[sx][sy];
 		RandomFillMap();
-		for(int i = 0; i < 5; i++){ // Sorts the map multiple times, to remove as much noise as possible.
+		for(int i = 0; i < 4; i++){ // Sorts the map multiple times, to remove as much noise as possible.
 			FixMap();
 		}
 		FillStones();
+		for(int x = 0; x < sx; x++){
+			for(int y = 0; y < sy; y++){
+				if(map[x][y] == 1){
+					whiteSpace += 1;
+				}
+			}
+		}
 	}
 	
 	private void RandomFillMap(){
@@ -56,7 +64,7 @@ public class MapGenerator {
 				int sum = 0;
 				for(int kx = -1; kx <= 1; kx++ ){
 					for(int ky = -1; ky <= 1; ky++){
-						 sum += map[x + kx][y + ky];
+						sum += map[x + kx][y + ky];
 					}
 				}
 				if(sum > 4) {
@@ -73,12 +81,18 @@ public class MapGenerator {
 		// If there is a 1 next to a 0, turn the 0 into a 2. (2 == stone wall)
 		for(int x = 1; x < sx-1; x++ ){
 			for(int y = 1; y < sy-1; y++){
-				if(map[x][y] == 0){
-					int total = 0;
-					total += map[x-1][y] + map[x+1][y] + map[x][y-1] + map[x][y+1];
-					if(total > 1){
-						map[x][y] = 2;
+				int sum = 0;
+				for(int kx = -1; kx <= 1; kx++ ){
+					for(int ky = -1; ky <= 1; ky++){
+						if(map[x][y] == 0){
+							if(map[x + kx][y + kx] == 1){
+								sum += map[x + kx][y + kx] * kernel[kx + 1][ky + 1];
+							}
+						}
 					}
+				}
+				if(sum >= 1){
+					map[x][y] = 2;
 				}
 			}
 		}

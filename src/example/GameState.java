@@ -1,5 +1,7 @@
 package example;
 
+import java.util.Random;
+
 import javafx.scene.shape.Shape;
 
 import org.lwjgl.input.Mouse;
@@ -17,21 +19,38 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 
 public class GameState extends BasicGameState {
 	MapGenerator MapGen = new MapGenerator();
+	PlayerStats PStat = new PlayerStats();
+	EnemyAI EAI = new EnemyAI();
+	
 	int size = MapGen.squareSize;
 	float Py = MapGen.sy / 2 * size;
 	float Px = MapGen.sx / 2 * size;
-	float pSpeed = 2;
+	float pSpeed = PStat.playerSpeed;
 	public String mouse = "no input";
 	public String playerpos ="no where";
 	public float rotAngle;
+	public int count = 0;
+	
 	private Image MC = null;
+	//private Image EImg = null;
 
 	
 	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {
 		MapGen.MapGeneration();
 		MC = new Image("data/MC.png");
+		//EImg = new Image("data/EImg.png");
 		if(MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 0){
 			MapGen.MapGeneration();
+		}
+		while (count < 20){
+			count++;
+		}
+		if(count >= 20){
+			for(int i = 0; i < EAI.spawnAmt; i++){
+				Random rn = new Random();
+				int ranNum = rn.nextInt(MapGen.whiteSpace - 1);
+				EAI.enemyArr[i] = ranNum;
+			}
 		}
 	}
 	
@@ -84,7 +103,7 @@ public class GameState extends BasicGameState {
 					g.setColor(Color.white); // Walkable Ground
 				}
 				else if(MapGen.map[x][y] == 0){
-					g.setColor(Color.black); // Nonwalkable Ground
+					g.setColor(Color.darkGray); // Nonwalkable Ground
 				}
 				else if(MapGen.map[x][y] == 2){
 					g.setColor(Color.gray); // Stones
@@ -95,11 +114,32 @@ public class GameState extends BasicGameState {
 		
 		g.drawString(mouse, 30, 30);
 		g.drawString(playerpos, 30, 40);
+		// Health bar
+		g.setColor(Color.green);
+		g.fillRect(Px - 10, Py - 15, PStat.healthPoint / 5, 2);
+		// Player
 		MC.draw(Px - 10 , Py - 10);
 		MC.setRotation(rotAngle);
+		// enemy spawn
+		for(int i = 0; i < EAI.spawnAmt; i++){
+			int mapInt = 0;
+			for(int x = 1; x < MapGen.sx - 1; x++){
+				for(int y = 1; y < MapGen.sy - 1; y++){
+					if(MapGen.map[x][y] == 1){
+						mapInt++;
+						if(mapInt == EAI.enemyArr[i]){
+							g.setColor(Color.red);
+							g.fillRect(x * size - 10, y * size - 15, EAI.healthPoint / 3 , 2);
+							MC.draw(x * size - 10, y * size - 10);
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
-	// Few issues with the detection, but is kinda working
+	// Few issues with the detection, but is working
 	private boolean WallDetected(){
 		boolean detect;
 		if(MapGen.map[(int)(Px - 10) / size][(int)(Py - 10) / size] == 0){
