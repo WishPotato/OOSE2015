@@ -81,13 +81,13 @@ public class GameState extends BasicGameState {
 		for(int x = 0; x < Window.WIDTH / size; x++) {
 			for(int y = 0; y < Window.HEIGHT / size; y++) {
 				if(MapGen.map[x][y] == 1){
-					g.setColor(Color.white);
+					g.setColor(Color.white); // Walkable Ground
 				}
 				else if(MapGen.map[x][y] == 0){
-					g.setColor(Color.black);
+					g.setColor(Color.black); // Nonwalkable Ground
 				}
 				else if(MapGen.map[x][y] == 2){
-					g.setColor(Color.gray);
+					g.setColor(Color.gray); // Stones
 				}
 				g.fillRect(x * size, y * size, size, size);
 			}
