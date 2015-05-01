@@ -1,14 +1,16 @@
 package example;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 
-import org.lwjgl.input.Mouse;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -20,20 +22,21 @@ public class GameState extends BasicGameState {
 	PlayerStats PStat = new PlayerStats();
 	EnemyAI EAI = new EnemyAI();
 	
+	private LinkedList<Bullet> bullets;
+	
 	int size = MapGen.squareSize;
 	float Py = MapGen.sy / 2 * size;
 	float Px = MapGen.sx / 2 * size;
 	float pSpeed = PStat.playerSpeed;
-	public String mouse = "no input";
-	public String playerpos ="no where";
-	public float rotAngle;
+
+	
 	public int count = 0;
 	
 	private Image MC = null;
 	private Image EImg = null;
 
 	
-	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {
+	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {		
 		MapGen.MapGeneration();
 		MC = PStat.getPlayerImg();
 		EImg = EAI.getEnemyImg();
@@ -50,6 +53,9 @@ public class GameState extends BasicGameState {
 				EAI.enemyArr[i] = ranNum;
 			}
 		}
+		
+		bullets = new LinkedList<Bullet>();
+		
 	}
 	
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
@@ -82,14 +88,32 @@ public class GameState extends BasicGameState {
 				Py -= delta * 0.1 * pSpeed;
 			}
 		}
+		// this code handle the rotation of the player towards the mouse
+		float xpos = input.getMouseX();
+		float ypos = input.getMouseY();
+		float xDistance = xpos - Px;
+		float yDistance = ypos - Py;
+		double rotAngle = Math.toDegrees(Math.atan2(yDistance, xDistance));
+		MC.setRotation((float)rotAngle-90);
 		
-		int xpos = Mouse.getX();
-		int ypos = Mouse.getY();
-		mouse = "Mouse position x: "+xpos+ " y:" +ypos;
-		playerpos = "player position x: "+Px+" y: "+Py;
-		rotAngle = (float) Math.cos(Math.toDegrees((Px-xpos)/(Py-ypos)));
-		//System.out.print(rotAngle);
-		
+		Iterator<Bullet> i = bullets.iterator();
+		while( i.hasNext() )
+		{
+			Bullet b = i.next();
+			if( b.isActive() )
+			{
+				b.update(delta);
+			}
+			else
+			{
+				i.remove();
+			}
+		}
+		//System.out.println(bullets.size());
+		if( container.getInput().isKeyPressed(Input.KEY_SPACE) )
+		{
+			bullets.add( new Bullet( new Vector2f(500,0) , new Vector2f(300,0) ) );
+		}
 	}
 	
 	public void render(GameContainer cg, StateBasedGame sg, Graphics g) throws SlickException {
@@ -110,14 +134,13 @@ public class GameState extends BasicGameState {
 			}
 		}
 		
-		g.drawString(mouse, 30, 30);
-		g.drawString(playerpos, 30, 40);
+		
 		// Health bar
 		g.setColor(Color.green);
 		g.fillRect(Px - 10, Py - 15, PStat.healthPoint / 5, 2);
 		// Player
 		MC.draw(Px - 10 , Py - 10);
-		MC.setRotation(rotAngle);
+		
 		// enemy spawn
 		for(int i = 0; i < EAI.spawnAmt; i++){
 			int mapInt = 0;
@@ -134,6 +157,11 @@ public class GameState extends BasicGameState {
 					}
 				}
 			}
+		}
+		
+		for( Bullet b : bullets )
+		{
+			b.render(cg, sg, g);
 		}
 	}
 	
