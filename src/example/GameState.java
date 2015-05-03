@@ -6,8 +6,6 @@ import java.util.Random;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -16,6 +14,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.geom.*;
 
 
 public class GameState extends BasicGameState {
@@ -69,6 +68,7 @@ public class GameState extends BasicGameState {
 						mapInt++;
 						if(mapInt == enemyArr[k]){
 							enemy.add(new EnemyAI(x,y, Eimg));
+							MapGen.map[x][y] = 3;
 						}
 					}
 				}
@@ -118,23 +118,31 @@ public class GameState extends BasicGameState {
 		for(int i = 0; i < enemy.size(); i++){
 			enemy.get(i).tick();
 		}
+		if(input.isKeyPressed(Input.KEY_SPACE) ) {
+			bullets.add( new Bullet(Px,Py, new Vector2f(xpos - Px, ypos - Py)));
+		}
 		// spawn and remove bullets
 		for(int i = 0; i < bullets.size(); i++){
 			bullets.get(i).update(delta);
 			if(WallDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
+				System.out.println("walled");
 				bullets.get(i).setActive(false);
+				bullets.remove(i);
 			}
+			/*else if(EnemyDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
+				System.out.println("ENEMY DIED");
+				bullets.get(i).setActive(false);
+				bullets.remove(i);
+				enemy.remove(i);
+			}*/
 			for(int k = 0; k < enemy.size(); k++){
 				if(bullets.get(i).cirB.intersects(enemy.get(k).rectE)){
-					System.out.println("ENEMY DIED");
+					System.out.println("GOTCHA BITCHES");
 					bullets.get(i).setActive(false);
 					bullets.remove(i);
 					enemy.remove(k);
 				}
 			}
-		}
-		if( input.isKeyPressed(Input.KEY_SPACE) ) {
-			bullets.add( new Bullet(Px,Py, new Vector2f(xpos - Px, ypos - Py)));
 		}
 	}
 	
@@ -152,6 +160,9 @@ public class GameState extends BasicGameState {
 				else if(MapGen.map[x][y] == 2){
 					g.setColor(Color.gray); // Stones
 				}
+				else if(MapGen.map[x][y] == 3){
+					g.setColor(Color.white); // Walkable Ground
+				}
 				g.fillRect(x * size, y * size, size, size);
 			}
 		}
@@ -162,14 +173,17 @@ public class GameState extends BasicGameState {
 		MC.draw(Px - 10 , Py - 10);
 		
 		// enemy spawn
-		for(int i = 0; i < enemy.size(); i++){
-			enemy.get(i).render(g);
+
+		for(EnemyAI ea : enemy){
+			ea.render(g);
+			g.draw(ea.rectE);
 		}
 		
 		
 		for( Bullet b : bullets )
 		{
 			b.render(cg, g);
+			g.draw(b.cirB);
 		}
 	}
 	
@@ -187,6 +201,17 @@ public class GameState extends BasicGameState {
 			detect = true;
 		}
 		else if(MapGen.map[(x + 10) / size][(y + 10) / size] == 2){
+			detect = true;
+		}
+		else {
+			detect = false;
+		}
+		return detect;
+	}
+	
+	private boolean EnemyDetected(int x, int y){
+		boolean detect;
+		if(MapGen.map[x / size][y/size] == 3){
 			detect = true;
 		}
 		else {

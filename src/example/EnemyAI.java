@@ -12,7 +12,7 @@ public class EnemyAI {
 	private Image img;
 	
 	public int health = 100;
-	public Rectangle rectE;
+	public Rectangle rectE = null;
 	
 	public EnemyAI(float x, float y, Image _img){
 		this.x = x;
@@ -21,7 +21,9 @@ public class EnemyAI {
 	}
 	
 	public void tick(){
-		rectE = new Rectangle(x,y, size, size);
+		if(health > 0){
+			//rectE = new Rectangle(x,y, size, size);
+		}
 	}
 	
 	public void render(Graphics g){
@@ -29,6 +31,7 @@ public class EnemyAI {
 			g.setColor(Color.red);
 			g.fillRect(x * size, y * size - 15, health / 5, 2);
 			img.draw(x * size,y * size);
+			rectE = new Rectangle(x * size,y * size, size, size);
 		}
 	}
 	

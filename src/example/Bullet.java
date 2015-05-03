@@ -3,7 +3,6 @@ package example;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Vector2f;
 
@@ -15,7 +14,7 @@ public class Bullet
 	private Vector2f speed;
 	private int lived = 0;
 	
-	public Circle cirB;
+	public Circle cirB = null;
 	
 	private boolean active = true;
 	
@@ -24,12 +23,13 @@ public class Bullet
 	public Bullet(float x, float y, Vector2f speed)
 	{
 		pos = new Vector2f(x,y);
+		this.speed = speed;
 	}
 	public void update (int t)
 	{
 		if (active)
 		{
-			cirB = new Circle(pos.getX()-5, pos.getY()-5, 5);
+			cirB = new Circle(pos.getX(), pos.getY(), 5);
 			Vector2f realSpeed = speed.copy();
 			realSpeed.scale( (t/1000.0f) );
 			pos.add( realSpeed );
@@ -42,10 +42,10 @@ public class Bullet
 	}
 	
 	
-	public void render(GameContainer cg, Graphics g) throws SlickException {
+	public void render(GameContainer cg, Graphics g){
 		if (active){
 			g.setColor(Color.red);
-			g.fillOval(pos.getX()-5, pos.getY()-5, 10, 10);
+			//g.fillOval(pos.getX()-5, pos.getY()-5, 10, 10);
 		}
 		
 	}
