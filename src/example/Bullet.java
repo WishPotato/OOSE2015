@@ -45,7 +45,7 @@ public class Bullet
 	public void render(GameContainer cg, Graphics g){
 		if (active){
 			g.setColor(Color.red);
-			//g.fillOval(pos.getX()-5, pos.getY()-5, 10, 10);
+			g.fillOval(pos.getX()-5, pos.getY()-5, 10, 10);
 		}
 		
 	}
@@ -58,6 +58,9 @@ public class Bullet
 		active = bool;
 	}
 	
+	public int getLived(){
+		return lived;
+	}
 	
 	public float getX(){
 		return pos.getX();

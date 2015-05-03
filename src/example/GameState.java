@@ -68,7 +68,6 @@ public class GameState extends BasicGameState {
 						mapInt++;
 						if(mapInt == enemyArr[k]){
 							enemy.add(new EnemyAI(x,y, Eimg));
-							MapGen.map[x][y] = 3;
 						}
 					}
 				}
@@ -127,7 +126,7 @@ public class GameState extends BasicGameState {
 			if(WallDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
 				System.out.println("walled");
 				bullets.get(i).setActive(false);
-				bullets.remove(i);
+				//bullets.remove(i);
 			}
 			/*else if(EnemyDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
 				System.out.println("ENEMY DIED");
@@ -139,10 +138,13 @@ public class GameState extends BasicGameState {
 				if(bullets.get(i).cirB.intersects(enemy.get(k).rectE)){
 					System.out.println("GOTCHA BITCHES");
 					bullets.get(i).setActive(false);
-					bullets.remove(i);
+					//bullets.remove(i);
 					enemy.remove(k);
 				}
 			}
+		}
+		if(enemy.size() == 0){
+			sbg.enterState(0);
 		}
 	}
 	
@@ -160,9 +162,6 @@ public class GameState extends BasicGameState {
 				else if(MapGen.map[x][y] == 2){
 					g.setColor(Color.gray); // Stones
 				}
-				else if(MapGen.map[x][y] == 3){
-					g.setColor(Color.white); // Walkable Ground
-				}
 				g.fillRect(x * size, y * size, size, size);
 			}
 		}
@@ -176,14 +175,14 @@ public class GameState extends BasicGameState {
 
 		for(EnemyAI ea : enemy){
 			ea.render(g);
-			g.draw(ea.rectE);
+			//g.draw(ea.rectE);
 		}
 		
 		
 		for( Bullet b : bullets )
 		{
 			b.render(cg, g);
-			g.draw(b.cirB);
+			//g.draw(b.cirB);
 		}
 	}
 	
