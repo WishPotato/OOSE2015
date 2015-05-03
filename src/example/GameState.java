@@ -6,6 +6,8 @@ import java.util.Random;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -21,7 +23,7 @@ public class GameState extends BasicGameState {
 	PlayerStats PStat = new PlayerStats();
 	
 	private LinkedList<Bullet> bullets;
-	private EnemyAI[] enemy;
+	private LinkedList<EnemyAI> enemy;
 	
 	int size = MapGen.squareSize;
 	float Py = MapGen.sy / 2 * size;
@@ -38,8 +40,6 @@ public class GameState extends BasicGameState {
 	public GameState(int state){}
 	
 	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {	
-		enemy = new EnemyAI[10];
-		
 		MapGen.MapGeneration();
 		MC = PStat.getPlayerImg();
 		Eimg = new Image("data/enemy.png");
@@ -59,6 +59,21 @@ public class GameState extends BasicGameState {
 		}
 		
 		bullets = new LinkedList<Bullet>();
+		enemy = new LinkedList<EnemyAI>();
+		
+		for(int k = 0; k < 10; k++){
+			int mapInt = 0;
+			for(int x = 1; x < MapGen.sx - 1; x++){
+				for(int y = 1; y < MapGen.sy - 1; y++){
+					if(MapGen.map[x][y] == 1){
+						mapInt++;
+						if(mapInt == enemyArr[k]){
+							enemy.add(new EnemyAI(x,y, Eimg));
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
@@ -100,16 +115,21 @@ public class GameState extends BasicGameState {
 		double rotAngle = Math.toDegrees(Math.atan2(yDistance, xDistance));
 		MC.setRotation((float)rotAngle-90);
 		
+		for(int i = 0; i < enemy.size(); i++){
+			enemy.get(i).tick();
+		}
 		// spawn and remove bullets
 		for(int i = 0; i < bullets.size(); i++){
 			bullets.get(i).update(delta);
 			if(WallDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
 				bullets.get(i).setActive(false);
 			}
-			for(int k = 0; k < enemy.length; k++){
-				if(bullets.get(i).cirB.intersects(enemy[k].rectE)){ // Crashes the game 
-					System.out.println("COLLIDE...");
-					enemy[k].health -= 100;
+			for(int k = 0; k < enemy.size(); k++){
+				if(bullets.get(i).cirB.intersects(enemy.get(k).rectE)){
+					System.out.println("ENEMY DIED");
+					bullets.get(i).setActive(false);
+					bullets.remove(i);
+					enemy.remove(k);
 				}
 			}
 		}
@@ -135,19 +155,6 @@ public class GameState extends BasicGameState {
 				g.fillRect(x * size, y * size, size, size);
 			}
 		}
-		for(int k = 0; k < enemy.length; k++){
-			int mapInt = 0;
-			for(int x = 1; x < MapGen.sx - 1; x++){
-				for(int y = 1; y < MapGen.sy - 1; y++){
-					if(MapGen.map[x][y] == 1){
-						mapInt++;
-						if(mapInt == enemyArr[k]){
-							enemy[k] = new EnemyAI(x,y, Eimg);
-						}
-					}
-				}
-			}
-		}
 		// Health bar
 		g.setColor(Color.green);
 		g.fillRect(Px - 10, Py - 15, PStat.healthPoint / 5, 2);
@@ -155,6 +162,10 @@ public class GameState extends BasicGameState {
 		MC.draw(Px - 10 , Py - 10);
 		
 		// enemy spawn
+		for(int i = 0; i < enemy.size(); i++){
+			enemy.get(i).render(g);
+		}
+		
 		
 		for( Bullet b : bullets )
 		{
