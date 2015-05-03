@@ -1,6 +1,5 @@
 package example;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -20,9 +19,9 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 public class GameState extends BasicGameState {
 	MapGenerator MapGen = new MapGenerator();
 	PlayerStats PStat = new PlayerStats();
-	EnemyAI EAI = new EnemyAI();
 	
 	private LinkedList<Bullet> bullets;
+	private EnemyAI[] enemy;
 	
 	int size = MapGen.squareSize;
 	float Py = MapGen.sy / 2 * size;
@@ -33,32 +32,37 @@ public class GameState extends BasicGameState {
 	public int count = 0;
 	
 	private Image MC = null;
-	private Image EImg = null;
+	private Image Eimg = null;
+	private int[] enemyArr = new int[10];
 
+	public GameState(int state){}
 	
-	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {		
+	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {	
+		enemy = new EnemyAI[10];
+		
 		MapGen.MapGeneration();
 		MC = PStat.getPlayerImg();
-		EImg = EAI.getEnemyImg();
-		if(MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 0){
+		Eimg = new Image("data/enemy.png");
+	
+		if(MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 0 || MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 2){
 			MapGen.MapGeneration();
 		}
 		while (count < 20){ // makes sure everything gets calculated (debug)
 			count++;
 		}
 		if(count >= 20){
-			for(int i = 0; i < EAI.spawnAmt; i++){
+			for(int i = 0; i < 10; i++){
 				Random rn = new Random();
 				int ranNum = rn.nextInt(MapGen.whiteSpace - 1);
-				EAI.enemyArr[i] = ranNum;
+				enemyArr[i] = ranNum;
 			}
 		}
 		
 		bullets = new LinkedList<Bullet>();
-		
 	}
 	
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
+		
 		Input input = container.getInput();
 		if(container.getInput().isKeyPressed(Input.KEY_1)){
 			sbg.enterState(1, new FadeOutTransition(), new FadeInTransition());
@@ -66,25 +70,25 @@ public class GameState extends BasicGameState {
 		
 		if(input.isKeyDown(Input.KEY_A)){
 			Px -= delta * 0.1f * pSpeed;
-			if(WallDetected()){
+			if(WallDetected((int)Px, (int)Py)){
 				Px += delta * 0.1f * pSpeed;
 			}
 		}
 		else if(input.isKeyDown(Input.KEY_D)){
 			Px += delta * 0.1 * pSpeed;
-			if(WallDetected()){
+			if(WallDetected((int)Px, (int)Py)){
 				Px -= delta * 0.1f * pSpeed;
 			}
 		}
 		else if(input.isKeyDown(Input.KEY_W)){
 			Py -= delta * 0.1 * pSpeed;
-			if(WallDetected()){
+			if(WallDetected((int)Px, (int)Py)){
 				Py += delta * 0.1 * pSpeed;
 			}
 		}
 		else if(input.isKeyDown(Input.KEY_S)){
 			Py += delta * 0.1 * pSpeed;
-			if(WallDetected()){
+			if(WallDetected((int)Px, (int)Py)){
 				Py -= delta * 0.1 * pSpeed;
 			}
 		}
@@ -96,23 +100,21 @@ public class GameState extends BasicGameState {
 		double rotAngle = Math.toDegrees(Math.atan2(yDistance, xDistance));
 		MC.setRotation((float)rotAngle-90);
 		
-		Iterator<Bullet> i = bullets.iterator();
-		while( i.hasNext() )
-		{
-			Bullet b = i.next();
-			if( b.isActive() )
-			{
-				b.update(delta);
+		// spawn and remove bullets
+		for(int i = 0; i < bullets.size(); i++){
+			bullets.get(i).update(delta);
+			if(WallDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
+				bullets.get(i).setActive(false);
 			}
-			else
-			{
-				i.remove();
+			for(int k = 0; k < enemy.length; k++){
+				if(bullets.get(i).cirB.intersects(enemy[k].rectE)){ // Crashes the game 
+					System.out.println("COLLIDE...");
+					enemy[k].health -= 100;
+				}
 			}
 		}
-		//System.out.println(bullets.size());
-		if( container.getInput().isKeyPressed(Input.KEY_SPACE) )
-		{
-			bullets.add( new Bullet( new Vector2f(500,0) , new Vector2f(300,0) ) );
+		if( input.isKeyPressed(Input.KEY_SPACE) ) {
+			bullets.add( new Bullet(Px,Py, new Vector2f(xpos - Px, ypos - Py)));
 		}
 	}
 	
@@ -125,7 +127,7 @@ public class GameState extends BasicGameState {
 					g.setColor(Color.white); // Walkable Ground
 				}
 				else if(MapGen.map[x][y] == 0){
-					g.setColor(Color.darkGray); // Nonwalkable Ground
+					g.setColor(Color.darkGray); // Non walkable Ground
 				}
 				else if(MapGen.map[x][y] == 2){
 					g.setColor(Color.gray); // Stones
@@ -133,8 +135,19 @@ public class GameState extends BasicGameState {
 				g.fillRect(x * size, y * size, size, size);
 			}
 		}
-		
-		
+		for(int k = 0; k < enemy.length; k++){
+			int mapInt = 0;
+			for(int x = 1; x < MapGen.sx - 1; x++){
+				for(int y = 1; y < MapGen.sy - 1; y++){
+					if(MapGen.map[x][y] == 1){
+						mapInt++;
+						if(mapInt == enemyArr[k]){
+							enemy[k] = new EnemyAI(x,y, Eimg);
+						}
+					}
+				}
+			}
+		}
 		// Health bar
 		g.setColor(Color.green);
 		g.fillRect(Px - 10, Py - 15, PStat.healthPoint / 5, 2);
@@ -142,42 +155,27 @@ public class GameState extends BasicGameState {
 		MC.draw(Px - 10 , Py - 10);
 		
 		// enemy spawn
-		for(int i = 0; i < EAI.spawnAmt; i++){
-			int mapInt = 0;
-			for(int x = 1; x < MapGen.sx - 1; x++){
-				for(int y = 1; y < MapGen.sy - 1; y++){
-					if(MapGen.map[x][y] == 1){
-						mapInt++;
-						if(mapInt == EAI.enemyArr[i]){
-							g.setColor(Color.red);
-							g.fillRect(x * size - 10, y * size - 15, EAI.healthPoint / 3 , 2);
-							EImg.draw(x * size - 10, y * size - 10);
-							break;
-						}
-					}
-				}
-			}
-		}
 		
 		for( Bullet b : bullets )
 		{
-			b.render(cg, sg, g);
+			b.render(cg, g);
 		}
 	}
 	
 	// Few issues with the detection, but is working
-	private boolean WallDetected(){
+	// MAKE IT MORE USABLE!
+	private boolean WallDetected(int x, int y){
 		boolean detect;
-		if(MapGen.map[(int)(Px - 10) / size][(int)(Py - 10) / size] == 0){
+		if(MapGen.map[(x - 10) / size][(y - 10) / size] == 0){
 			detect = true;
 		}
-		else if(MapGen.map[(int)(Px + 10) / size][(int)(Py + 10) / size] == 0){
+		else if(MapGen.map[(x + 10) / size][(y + 10) / size] == 0){
 			detect = true;
 		}
-		else if(MapGen.map[(int)(Px - 10) / size][(int)(Py - 10) / size] == 2){
+		else if(MapGen.map[(x - 10) / size][(y - 10) / size] == 2){
 			detect = true;
 		}
-		else if(MapGen.map[(int)(Px + 10) / size][(int)(Py + 10) / size] == 2){
+		else if(MapGen.map[(x + 10) / size][(y + 10) / size] == 2){
 			detect = true;
 		}
 		else {
@@ -187,8 +185,7 @@ public class GameState extends BasicGameState {
 	}
 
 	public int getID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 1;
 	}
 
 }

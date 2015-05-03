@@ -26,7 +26,7 @@ public class GameOverState extends BasicGameState {
 	
 	public int getID() {
 		// TODO Auto-generated method stub
-		return 1;
+		return 2;
 	}
 
 }

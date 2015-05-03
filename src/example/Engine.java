@@ -14,9 +14,7 @@ public class Engine extends StateBasedGame{
 	
 	public Engine() {
 		super("Gauntlet");
-		// add "public GameState(int state)" before removing the other "//"
-		//this.addState(new GameState(play));
-		this.addState(new MainMenu(menu));
+		
 		//this.addState(new GameOverState());
 	
 	}
@@ -27,9 +25,11 @@ public class Engine extends StateBasedGame{
 		container.setMaximumLogicUpdateInterval(60);
 		container.setVSync(true);
 		container.setShowFPS(false); // Removes the FPS counter
+		this.addState(new GameState(play));
+		this.addState(new MainMenu(menu));
 		this.getState(menu).init(container, this);
-		//this.getState(play).init(container, this);
-		this.enterState(menu);
+		this.getState(play).init(container, this);
+		this.enterState(play);
 	}
 	
 	public static void main(String[] args) {
