@@ -1,6 +1,5 @@
 package example;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.geom.Rectangle;
@@ -28,8 +27,6 @@ public class EnemyAI {
 	
 	public void render(Graphics g){
 		if(health > 0){
-			g.setColor(Color.red);
-			g.fillRect(x * size, y * size - 15, health / 5, 2);
 			img.draw(x * size,y * size);
 			rectE = new Rectangle(x * size,y * size, size, size);
 		}

@@ -2,6 +2,8 @@ package example;
 
 import java.util.Random;
 
+import org.newdawn.slick.geom.Rectangle;
+
 public class MapGenerator {
 	public int squareSize = 20;
 	public int sx = Window.WIDTH / squareSize;
@@ -13,13 +15,15 @@ public class MapGenerator {
 	public String seed = "2Ras-3aWX-XYOQ-19XP";
 	public boolean useRandomSeed = true;
 	
+	public Rectangle[] walls = null;
+	
 	public int[][] map; 
 	
 	
 	public void MapGeneration() {
 		map = new int[sx][sy];
 		RandomFillMap();
-		for(int i = 0; i < 4; i++){ // Sorts the map multiple times, to remove as much noise as possible.
+		for(int i = 0; i < 3; i++){ // Sorts the map multiple times, to remove as much noise as possible.
 			FixMap();
 		}
 		FillStones();

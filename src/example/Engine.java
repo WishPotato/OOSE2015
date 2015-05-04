@@ -13,9 +13,7 @@ public class Engine extends StateBasedGame{
 	public static final int play = 1;
 	
 	public Engine() {
-		super("Gauntlet");
-		
-		//this.addState(new GameOverState());
+		super("Demon Hunter");
 	
 	}
 	public void initStatesList(GameContainer container) throws SlickException {
@@ -29,7 +27,7 @@ public class Engine extends StateBasedGame{
 		this.addState(new MainMenu(menu));
 		this.getState(menu).init(container, this);
 		this.getState(play).init(container, this);
-		this.enterState(play);
+		this.enterState(menu);
 	}
 	
 	public static void main(String[] args) {

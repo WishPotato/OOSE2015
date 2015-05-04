@@ -2,8 +2,6 @@ package example;
 
 import java.util.LinkedList;
 import java.util.Random;
-
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -25,8 +23,8 @@ public class GameState extends BasicGameState {
 	private LinkedList<EnemyAI> enemy;
 	
 	int size = MapGen.squareSize;
-	float Py = MapGen.sy / 2 * size;
-	float Px = MapGen.sx / 2 * size;
+	float Py;
+	float Px;
 	float pSpeed = PStat.playerSpeed;
 
 	
@@ -34,15 +32,27 @@ public class GameState extends BasicGameState {
 	
 	private Image MC = null;
 	private Image Eimg = null;
+	private Image stoneImg = null;
+	private Image lowImg = null;
+	private Image highImg = null;
 	private int[] enemyArr = new int[10];
-
-	public GameState(int state){}
 	
-	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {	
-		MapGen.MapGeneration();
+	private Circle playerCirc = null;
+
+	public GameState(int state){
+	}
+	
+	public void init(GameContainer arg0, StateBasedGame arg1) throws SlickException {
+		
 		MC = PStat.getPlayerImg();
 		Eimg = new Image("data/enemy.png");
+		stoneImg = new Image("data/Stones.png");
+		lowImg = new Image("data/LowGround.png");
+		highImg = new Image("data/TopGround.png");
 	
+		Py = MapGen.sy / 2 * size;
+		Px = MapGen.sx / 2 * size;
+		MapGen.MapGeneration();
 		if(MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 0 || MapGen.map[(int)Px / MapGen.squareSize][(int)Py / MapGen.squareSize] == 2){
 			MapGen.MapGeneration();
 		}
@@ -66,7 +76,7 @@ public class GameState extends BasicGameState {
 				for(int y = 1; y < MapGen.sy - 1; y++){
 					if(MapGen.map[x][y] == 1){
 						mapInt++;
-						if(mapInt == enemyArr[k]){
+						if(mapInt == enemyArr[k] - 10){
 							enemy.add(new EnemyAI(x,y, Eimg));
 						}
 					}
@@ -76,7 +86,6 @@ public class GameState extends BasicGameState {
 	}
 	
 	public void update(GameContainer container, StateBasedGame sbg, int delta) throws SlickException {
-		
 		Input input = container.getInput();
 		if(container.getInput().isKeyPressed(Input.KEY_1)){
 			sbg.enterState(1, new FadeOutTransition(), new FadeInTransition());
@@ -113,6 +122,7 @@ public class GameState extends BasicGameState {
 		float yDistance = ypos - Py;
 		double rotAngle = Math.toDegrees(Math.atan2(yDistance, xDistance));
 		MC.setRotation((float)rotAngle-90);
+		playerCirc = new Circle(Px - size/2, Py - size/2, size/2);
 		
 		for(int i = 0; i < enemy.size(); i++){
 			enemy.get(i).tick();
@@ -124,21 +134,14 @@ public class GameState extends BasicGameState {
 		for(int i = 0; i < bullets.size(); i++){
 			bullets.get(i).update(delta);
 			if(WallDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
-				System.out.println("walled");
 				bullets.get(i).setActive(false);
-				//bullets.remove(i);
 			}
-			/*else if(EnemyDetected((int)bullets.get(i).getX(), (int)bullets.get(i).getY())){
-				System.out.println("ENEMY DIED");
-				bullets.get(i).setActive(false);
-				bullets.remove(i);
-				enemy.remove(i);
-			}*/
 			for(int k = 0; k < enemy.size(); k++){
+				if(playerCirc.intersects(enemy.get(k).rectE)){
+					sbg.enterState(0);
+				}
 				if(bullets.get(i).cirB.intersects(enemy.get(k).rectE)){
-					System.out.println("GOTCHA BITCHES");
 					bullets.get(i).setActive(false);
-					//bullets.remove(i);
 					enemy.remove(k);
 				}
 			}
@@ -149,40 +152,28 @@ public class GameState extends BasicGameState {
 	}
 	
 	public void render(GameContainer cg, StateBasedGame sg, Graphics g) throws SlickException {
-		// Creates the map, with white and black tiles
-		// TO DO: CHANGE  COLORS TO IMAGES!
 		for(int x = 0; x < Window.WIDTH / size; x++) {
 			for(int y = 0; y < Window.HEIGHT / size; y++) {
 				if(MapGen.map[x][y] == 1){
-					g.setColor(Color.white); // Walkable Ground
+					lowImg.draw(x * size, y * size);
 				}
 				else if(MapGen.map[x][y] == 0){
-					g.setColor(Color.darkGray); // Non walkable Ground
+					highImg.draw(x * size, y * size);
 				}
 				else if(MapGen.map[x][y] == 2){
-					g.setColor(Color.gray); // Stones
+					stoneImg.draw(x * size, y * size);
 				}
-				g.fillRect(x * size, y * size, size, size);
 			}
 		}
-		// Health bar
-		g.setColor(Color.green);
-		g.fillRect(Px - 10, Py - 15, PStat.healthPoint / 5, 2);
 		// Player
 		MC.draw(Px - 10 , Py - 10);
-		
 		// enemy spawn
-
 		for(EnemyAI ea : enemy){
 			ea.render(g);
-			//g.draw(ea.rectE);
 		}
-		
-		
 		for( Bullet b : bullets )
 		{
 			b.render(cg, g);
-			//g.draw(b.cirB);
 		}
 	}
 	
@@ -200,17 +191,6 @@ public class GameState extends BasicGameState {
 			detect = true;
 		}
 		else if(MapGen.map[(x + 10) / size][(y + 10) / size] == 2){
-			detect = true;
-		}
-		else {
-			detect = false;
-		}
-		return detect;
-	}
-	
-	private boolean EnemyDetected(int x, int y){
-		boolean detect;
-		if(MapGen.map[x / size][y/size] == 3){
 			detect = true;
 		}
 		else {
